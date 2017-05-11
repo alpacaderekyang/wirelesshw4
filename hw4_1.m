@@ -1,5 +1,5 @@
 temperature = 300; % 27,300k 
-B = 10*10^6; %bandwidth 10M
+B = 10*10^6/50; %bandwidth 10M
 %I = 0;
 N = myNoise(300,B);
 GT_db = 14;
@@ -20,7 +20,7 @@ n = 50;%number of ms in a cell
 
 bufferSize = 6*10^6; %6M
 testTime = 1000;%duration 1000
-CBR = [0.25, 0.5 , 1]*4*10^7; %constant bit rate, CBR parameters {Xl, Xm, Xh}
+CBR = [0.25, 0.5 , 1]*10^6; %constant bit rate, CBR parameters {Xl, Xm, Xh}
 
 
 %location of 19 BS (modified from hw2)

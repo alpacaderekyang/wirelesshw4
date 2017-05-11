@@ -1,5 +1,5 @@
 temperature = 300; % 27,300k 
-B = 10*10^6; %bandwidth 10M
+B = 10*10^6/50; %bandwidth 10M
 %I = 0;
 N = myNoise(300,B);
 GT_db = 14;
@@ -20,8 +20,8 @@ n = 50;%number of ms in a cell
 
 bufferSize = 6*10^6; %6M
 testTime = 1000;%duration 1000
-%CBR = [0.25, 0.5 , 1]*4*10^7; %constant bit rate, CBR parameters {Xl, Xm, Xh}
-PTA = [0.25, 0.5 , 1]*4*10^7;% Poisson traffic arrival  = {lamda_l,lamda_m, lamda_h},
+%CBR = [0.25, 0.5 , 1]*10^6; %constant bit rate, CBR parameters {Xl, Xm, Xh}
+PTA = [0.25, 0.5 , 1]*10^6;% Poisson traffic arrival  = {lamda_l,lamda_m, lamda_h},
 
 
 %location of 19 BS (modified from hw2)
@@ -86,8 +86,8 @@ ylabel('Shannon Capacity(bits/s)')
 
 bitloss = zeros(1,3);
 total_bit = zeros(1,3); %total bits
-loss_prob = zeros(1,3); %loss probability
-rem_buff = ones(1,3)*bufferSize; %remain buffer
+rem_buff = ones(1,3)*bufferSize; %remaining buffer
+data_buff = zeros(n,3); %data in buffer corresponding to each MS
 for t = 1:testTime
     for i=1:n
         for k=1:3 %rate low medium high
@@ -95,9 +95,20 @@ for t = 1:testTime
             total_bit(1,k) = total_bit(1,k) + temp_arrival;
             if C(i,1) < temp_arrival %rate > capacity , goes to buffer
                 rem_buff(1,k) = rem_buff(1,k) - (temp_arrival-C(i,1));
+                data_buff(i,k) = data_buff(i,k) + (temp_arrival-C(i,1));
                 if (rem_buff(1,k) < 0) %buffer is full
                     bitloss(1,k) = bitloss(1,k) - rem_buff(1,k);
                     rem_buff(1,k) = 0;
+                end
+            elseif  C(i,1) > temp_arrival %less thing in buffer
+                if data_buff(i,k) ~=0 
+                    if data_buff(i,k) > (C(i,1) - temp_arrival) %can not clear all buffer caused by the MS
+                        rem_buff(1,k) = rem_buff(1,k) + (C(i,1) - temp_arrival);
+                        data_buff(i,k) = data_buff(i,k) - (C(i,1) - temp_arrival);
+                    else %can clear all buffer caused by the MS
+                        rem_buff(1,k) = rem_buff(1,k) + data_buff(i,k);
+                        data_buff(i,k) = 0; 
+                    end
                 end
             end
         end
