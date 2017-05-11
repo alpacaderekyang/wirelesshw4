@@ -22,6 +22,7 @@ bufferSize = 6*10^6; %6M
 testTime = 1000;%duration 1000
 CBR = [0.25, 0.5 , 1]*4*10^7; %constant bit rate, CBR parameters {Xl, Xm, Xh}
 
+
 %location of 19 BS (modified from hw2)
 x_BS = sqrt(3)*[-500, -500, -500, -250, -250, -250, -250,    0,   0,  0,    0,     0, 250,  250,  250,  250, 500, 500,  500];
 y_BS =         [500 ,    0, -500,  750,  250, -250, -750, 1000, 500,  0, -500, -1000, 750 , 250, -250, -750, 500,   0, -500];
@@ -84,24 +85,24 @@ ylabel('Shannon Capacity(bits/s)')
 
 bitloss = zeros(1,3);
 total_bit = zeros(1,3); %total bits
-loss_prob = zeros(1,3); %loss probability
 rem_buff = ones(1,3)*bufferSize; %remain buffer
-for i=1:n
-    for k=1:3 %rate low medium high
-        if C(i,1) < CBR(k) %rate > capacity , goes to buffer
-            rem_buff(1,k) = rem_buff(1,k) - testTime*(CBR(k)-C(i,1));
-            if (rem_buff(1,k) < 0) %buffer is full
-                bitloss(1,k) = bitloss(1,k) - rem_buff(1,k);
-                rem_buff(1,k) = 0;
+for t = 1:testTime
+    for i=1:n
+        for k=1:3 %rate low medium high
+            temp_arrival = CBR(k);
+            total_bit(1,k) = total_bit(1,k) + temp_arrival;
+            if C(i,1) < temp_arrival %rate > capacity , goes to buffer
+                rem_buff(1,k) = rem_buff(1,k) - (temp_arrival-C(i,1));
+                if (rem_buff(1,k) < 0) %buffer is full
+                    bitloss(1,k) = bitloss(1,k) - rem_buff(1,k);
+                    rem_buff(1,k) = 0;
+                end
             end
         end
     end
 end
 
-for k=1:3
-    total_bit(1,k) = testTime*CBR(k)*n; %all n ms is same bit rate
-    loss_prob(1,k) = bitloss(1,k) / total_bit(1,k); 
-end
+loss_prob = bitloss ./ total_bit; 
     
 figure
 bar(CBR , loss_prob);
